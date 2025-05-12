@@ -16,7 +16,6 @@ import textToSqlImg from "../../public/showcase/optimized/text-to-sql.png";
 
 import Image, { StaticImageData } from "next/image";
 import { Var, T } from "gt-next/client";
-import { usePathname } from "next/navigation";
 
 interface ShowcaseCardProps {
   title: string;
@@ -60,9 +59,6 @@ const ShowcaseCard = ({
 );
 
 export const ShowcaseGrid = () => {
-  const pathname = usePathname();
-  // Always use 'en' as the locale regardless of the current path
-  const locale = "en";
   const showcaseItems: ShowcaseCardProps[] = [
     {
       title: "Olive",

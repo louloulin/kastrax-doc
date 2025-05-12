@@ -10,7 +10,7 @@ export const generateStaticParams = generateStaticParamsFor(
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 export async function generateMetadata(props: any) {
-  const { locale, mdxPath } = await props.params;
+  const { mdxPath } = await props.params;
   const { metadata } = await importPage(mdxPath, "en");
 
   // Always use 'en' as the locale in URLs

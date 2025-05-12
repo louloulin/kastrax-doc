@@ -35,13 +35,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params,
 }: Readonly<{
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
   // Always use 'en' as the locale regardless of the URL parameter
-  const { locale: urlLocale } = await params;
   const locale = "en";
   const pageMap = await getPageMap(`/en`);
   const stars = await fetchStars();

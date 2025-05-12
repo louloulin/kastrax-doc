@@ -43,7 +43,7 @@ export function CookieBanner({
       return;
     }
     onConsentChange(storedConsent === "true");
-  }, [isEU]);
+  }, [isEU, onConsentChange]);
 
   const handleAccept = () => {
     localStorage.setItem("cookie-consent", "true");
