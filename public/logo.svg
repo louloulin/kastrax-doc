@@ -1,0 +1,46 @@
+<svg width="180" height="40" viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 新的图标设计 - 代表AI和连接的网络 -->
+  <g transform="translate(10, 5)">
+    <!-- 外圆 -->
+    <circle cx="15" cy="15" r="14" stroke="white" stroke-width="1.5"/>
+    
+    <!-- 内部网络结构 -->
+    <circle cx="15" cy="15" r="3" fill="white"/>
+    <circle cx="8" cy="10" r="2" fill="white"/>
+    <circle cx="22" cy="10" r="2" fill="white"/>
+    <circle cx="8" cy="20" r="2" fill="white"/>
+    <circle cx="22" cy="20" r="2" fill="white"/>
+    
+    <!-- 连接线 -->
+    <line x1="15" y1="15" x2="8" y2="10" stroke="white" stroke-width="1"/>
+    <line x1="15" y1="15" x2="22" y2="10" stroke="white" stroke-width="1"/>
+    <line x1="15" y1="15" x2="8" y2="20" stroke="white" stroke-width="1"/>
+    <line x1="15" y1="15" x2="22" y2="20" stroke="white" stroke-width="1"/>
+    <line x1="8" y1="10" x2="22" y2="10" stroke="white" stroke-width="1"/>
+    <line x1="8" y1="20" x2="22" y2="20" stroke="white" stroke-width="1"/>
+  </g>
+  
+  <!-- KASTRAX 文本 -->
+  <g transform="translate(45, 25)">
+    <!-- K -->
+    <path d="M0 -15H4V0H0V-15ZM12 -15L4 -5L12 5H7L0 -5L0 -5V5H-4V-15H0V-5L0 -5L7 -15H12Z" fill="white"/>
+    
+    <!-- A -->
+    <path d="M25 -15L33 5H29L27 0H19L17 5H13L21 -15H25ZM25 -11L21 -4H25L21 -11Z" transform="translate(-8, 0)" fill="white"/>
+    
+    <!-- S -->
+    <path d="M45 -3C45 -1 44 0 42 1C40 2 38 3 35 3C32 3 30 2 28 1C26 0 25 -2 25 -4H29C29 -3 30 -2 31 -1C32 0 33 0 35 0C36 0 37 0 38 -1C39 -1 39 -2 39 -3C39 -4 39 -4 38 -5C37 -5 36 -5 35 -6L31 -7C29 -8 28 -8 27 -9C26 -10 25 -11 25 -13C25 -14 26 -15 28 -16C30 -17 32 -18 34 -18C36 -18 38 -17 40 -16C42 -15 43 -13 43 -11H39C39 -12 38 -13 37 -13C36 -14 35 -14 34 -14C33 -14 32 -14 31 -13C30 -13 30 -12 30 -11C30 -11 30 -10 31 -10C32 -9 33 -9 34 -8L38 -7C40 -6 41 -5 42 -4C44 -3 45 -1 45 0V-3Z" transform="translate(-8, 0)" fill="white"/>
+    
+    <!-- T -->
+    <path d="M60 -15V-11H56V5H52V-11H48V-15H60Z" transform="translate(-8, 0)" fill="white"/>
+    
+    <!-- R -->
+    <path d="M72 -15V5H68V-15H72ZM72 -15H78C80 -15 81 -14 82 -13C83 -12 84 -10 84 -9C84 -7 83 -5 82 -4C81 -3 80 -2 78 -2H72V-6H77C78 -6 78 -6 79 -7C79 -7 79 -8 79 -9C79 -10 79 -10 79 -11C78 -11 78 -11 77 -11H72V-15ZM80 5H75L79 -2L80 5Z" transform="translate(-8, 0)" fill="white"/>
+    
+    <!-- A -->
+    <path d="M97 -15L105 5H101L99 0H91L89 5H85L93 -15H97ZM97 -11L93 -4H97L93 -11Z" transform="translate(-8, 0)" fill="white"/>
+    
+    <!-- X -->
+    <path d="M115 -15L110 -5L115 5H110L107 -1L104 5H99L104 -5L99 -15H104L107 -9L110 -15H115Z" transform="translate(-8, 0)" fill="white"/>
+  </g>
+</svg>

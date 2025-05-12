@@ -1,0 +1,217 @@
+# Memory Processors ✅
+
+Memory Processors allow you to modify the list of messages retrieved from memory _before_ they are added to the agent's context window and sent to the LLM. This is useful for managing context size, filtering content, and optimizing performance.
+
+Processors operate on the messages retrieved based on your memory configuration (e.g., conversation history, semantic memory). They do **not** affect the new incoming user message.
+
+## Built-in Processors ✅
+
+Kastrax provides several built-in processors:
+
+### Summarizer ✅
+
+The summarizer condenses long conversations to save token space. It's particularly useful when dealing with lengthy conversation histories.
+
+```kotlin
+memory = memory {
+    // Enable the summarizer
+    summarizer(true)
+    
+    // Configure when summarization should occur
+    summarizerThreshold(10) // Summarize after 10 messages
+    
+    // Configure the summarization model (optional)
+    summarizerModel(deepSeek {
+        apiKey("your-deepseek-api-key")
+        model(DeepSeekModel.DEEPSEEK_CHAT)
+        temperature(0.3) // Lower temperature for more factual summaries
+    })
+}
+```
+
+### Context Optimizer ✅
+
+The context optimizer selects the most relevant memories for the current context, ensuring that the most important information is included within token limits.
+
+```kotlin
+memory = memory {
+    // Enable the context optimizer
+    contextOptimizer(true)
+    
+    // Configure token limits
+    contextTokenLimit(2000) // Limit context to 2000 tokens
+    
+    // Configure relevance threshold (optional)
+    contextRelevanceThreshold(0.6) // Only include memories with relevance > 0.6
+}
+```
+
+### Importance Evaluator ✅
+
+The importance evaluator assesses the importance of new information to determine whether it should be stored in memory.
+
+```kotlin
+memory = memory {
+    // Enable the importance evaluator
+    importanceEvaluator(true)
+    
+    // Configure importance threshold
+    importanceThreshold(0.6) // Only store memories with importance > 0.6
+}
+```
+
+### Token Limiter ✅
+
+This processor prevents errors caused by exceeding the LLM's context window limit. It counts the tokens in the retrieved memory messages and removes the oldest messages until the total count is below the specified limit.
+
+```kotlin
+memory = memory {
+    // Configure token limits
+    tokenLimit(4000) // Limit total tokens to 4000
+    
+    // Configure token counting method (optional)
+    tokenCounter { text ->
+        // Custom token counting logic
+        text.split(" ").size // Simple word count as an example
+    }
+}
+```
+
+## Creating Custom Processors ✅
+
+You can create custom memory processors to implement specialized logic for your application:
+
+```kotlin
+import ai.kastrax.core.memory.MemoryProcessor
+import ai.kastrax.core.memory.Message
+
+class CustomMemoryProcessor : MemoryProcessor {
+    override fun process(messages: List<Message>, query: String): List<Message> {
+        // Your custom processing logic here
+        
+        // Example: Filter out messages containing certain keywords
+        return messages.filter { message ->
+            !message.content.contains("confidential", ignoreCase = true)
+        }
+    }
+}
+
+// Use the custom processor
+memory = memory {
+    // Add your custom processor
+    addProcessor(CustomMemoryProcessor())
+}
+```
+
+## Combining Processors ✅
+
+You can combine multiple processors to create a sophisticated memory processing pipeline:
+
+```kotlin
+memory = memory {
+    // Enable built-in processors
+    summarizer(true)
+    contextOptimizer(true)
+    importanceEvaluator(true)
+    
+    // Add custom processors
+    addProcessor(CustomMemoryProcessor())
+    
+    // Configure processing order (optional)
+    processingOrder(listOf(
+        "Summarizer",
+        "CustomMemoryProcessor",
+        "ContextOptimizer",
+        "TokenLimiter"
+    ))
+}
+```
+
+## Example: Advanced Memory Configuration ✅
+
+Here's a complete example of an agent with advanced memory processing:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.core.memory.memory
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    // Create agent with advanced memory processing
+    val advancedAgent = agent {
+        name("AdvancedMemoryAgent")
+        description("An agent with advanced memory processing")
+        
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+        
+        // Configure memory with processors
+        memory = memory {
+            // Basic memory configuration
+            workingMemory(true)
+            conversationHistory(20)
+            semanticMemory(true)
+            
+            // Memory processors
+            summarizer(true)
+            summarizerThreshold(15)
+            
+            contextOptimizer(true)
+            contextTokenLimit(3000)
+            
+            importanceEvaluator(true)
+            importanceThreshold(0.5)
+            
+            // Custom processor for filtering sensitive information
+            addProcessor(object : MemoryProcessor {
+                override fun process(messages: List<Message>, query: String): List<Message> {
+                    return messages.map { message ->
+                        // Redact sensitive information
+                        val redactedContent = message.content
+                            .replace(Regex("\\b\\d{4}-\\d{4}-\\d{4}-\\d{4}\\b"), "[CREDIT_CARD]")
+                            .replace(Regex("\\b\\d{3}-\\d{2}-\\d{4}\\b"), "[SSN]")
+                        
+                        // Create a new message with redacted content
+                        Message(
+                            role = message.role,
+                            content = redactedContent,
+                            timestamp = message.timestamp,
+                            metadata = message.metadata
+                        )
+                    }
+                }
+            })
+        }
+    }
+    
+    // Use the agent
+    val response = advancedAgent.generate("Tell me about our previous conversation regarding quantum computing")
+    println(response.text)
+}
+```
+
+## Best Practices ✅
+
+1. **Start Simple**: Begin with the built-in processors before creating custom ones.
+
+2. **Monitor Performance**: Memory processing can impact response time, so monitor performance in production.
+
+3. **Test Thoroughly**: Test your processors with various conversation scenarios to ensure they behave as expected.
+
+4. **Consider Token Limits**: Always include token limiting to prevent context window errors.
+
+5. **Order Matters**: The order of processors can significantly affect the final context. Generally, summarization should happen before optimization.
+
+## Next Steps ✅
+
+Now that you understand memory processors, you can:
+
+1. Learn about [working memory](./working-memory.mdx)
+2. Explore [semantic recall](./semantic-recall.mdx)
+3. Implement [custom memory storage](./implementations.mdx)

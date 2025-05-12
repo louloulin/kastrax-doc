@@ -1,0 +1,339 @@
+---
+title: "Memory System Overview | Kastrax Docs"
+description: "The Kastrax memory system provides agents with the ability to remember past interactions, store important information, and retrieve relevant context."
+---
+
+# Memory System Overview ✅
+
+The Kastrax memory system provides agents with the ability to remember past interactions, store important information, and retrieve relevant context. This guide explains the memory system architecture and how to use it effectively.
+
+## Memory System Architecture ✅
+
+The Kastrax memory system consists of several key components:
+
+1. **Memory API**: The core interfaces that define how memory is managed
+2. **Memory Implementation**: The concrete implementations of memory storage
+3. **Message Management**: How messages are stored, retrieved, and processed
+4. **Thread Management**: How conversations are organized into threads
+5. **Memory Retrieval**: Different strategies for retrieving relevant memories
+6. **Memory Storage Backends**: Different storage options for persisting memory
+
+## Memory Types ✅
+
+Kastrax supports several types of memory:
+
+### Working Memory ✅
+
+Working memory contains system instructions, user information, and other context that should be included in every prompt. It's like the "RAM" of the agent, holding immediately relevant information.
+
+```kotlin
+memory {
+    workingMemory(true)
+    workingMemoryContent("The user's name is Alice and she prefers concise responses.")
+}
+```
+
+### Conversation History ✅
+
+Conversation history stores recent messages between the user and the agent. It provides immediate context for the current conversation.
+
+```kotlin
+memory {
+    conversationHistory(10) // Store the last 10 messages
+}
+```
+
+### Semantic Memory ✅
+
+Semantic memory stores important information that the agent might need to recall later. It's searchable by semantic similarity, allowing the agent to retrieve relevant information based on the current context.
+
+```kotlin
+memory {
+    semanticMemory(true)
+    semanticMemoryModel("all-MiniLM-L6-v2") // Embedding model for semantic search
+}
+```
+
+### Episodic Memory ✅
+
+Episodic memory stores complete interaction sequences or "episodes." It helps the agent understand the history of its interactions with a user over time.
+
+```kotlin
+memory {
+    episodicMemory(true)
+    episodicMemoryCapacity(50) // Store up to 50 episodes
+}
+```
+
+## Memory Configuration ✅
+
+Here's how to configure the memory system for an agent:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.core.memory.memory
+import ai.kastrax.core.memory.MemoryPriority
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun createAgentWithMemory() = agent {
+    name("MemoryAgent")
+    description("An agent with memory capabilities")
+
+    // Configure the LLM
+    model = deepSeek {
+        apiKey("your-deepseek-api-key")
+        model(DeepSeekModel.DEEPSEEK_CHAT)
+        temperature(0.7)
+    }
+
+    // Configure memory
+    memory = memory {
+        // Enable working memory
+        workingMemory(true)
+        workingMemoryContent("The user prefers technical explanations.")
+
+        // Configure conversation history
+        conversationHistory(15) // Remember last 15 messages
+
+        // Enable semantic memory
+        semanticMemory(true)
+        semanticMemoryModel("all-MiniLM-L6-v2")
+
+        // Configure memory processors
+        summarizer(true) // Summarize long conversations
+        contextOptimizer(true) // Optimize context for token efficiency
+    }
+}
+
+fun main() = runBlocking {
+    val agent = createAgentWithMemory()
+
+    // Test the agent
+    println(agent.generate("Tell me about quantum computing").text)
+
+    // Add a memory
+    agent.memory.add("User is a physicist with expertise in quantum mechanics", MemoryPriority.HIGH)
+
+    // Generate again with the new memory
+    println(agent.generate("Tell me more about quantum entanglement").text)
+}
+```
+
+## Memory Operations ✅
+
+### Adding Memories ✅
+
+You can add memories to an agent programmatically:
+
+```kotlin
+// Add a simple memory
+agent.memory.add("User is interested in machine learning", MemoryPriority.MEDIUM)
+
+// Add a structured memory
+agent.memory.add(
+    content = "User's favorite programming language is Kotlin",
+    metadata = mapOf(
+        "category" to "preferences",
+        "topic" to "programming"
+    ),
+    priority = MemoryPriority.MEDIUM
+)
+```
+
+### Retrieving Memories ✅
+
+You can retrieve memories based on semantic similarity:
+
+```kotlin
+// Retrieve memories related to a query
+val memories = agent.memory.retrieve("programming languages", 3) // Get top 3 matches
+
+// Print the retrieved memories
+memories.forEach { memory ->
+    println("Memory: ${memory.content}")
+    println("Relevance: ${memory.relevance}")
+    println("Created: ${memory.createdAt}")
+    println()
+}
+```
+
+### Forgetting Memories ✅
+
+You can remove memories that are no longer needed:
+
+```kotlin
+// Forget a specific memory by ID
+agent.memory.forget(memoryId)
+
+// Forget memories by filter
+agent.memory.forgetWhere { memory ->
+    memory.metadata["category"] == "outdated"
+}
+```
+
+## Memory Storage Backends ✅
+
+Kastrax supports multiple storage backends for memory:
+
+### In-Memory Storage ✅
+
+The default storage is in-memory, which is suitable for simple applications:
+
+```kotlin
+memory {
+    storage(InMemoryStorage())
+}
+```
+
+### SQLite Storage ✅
+
+For persistent storage, you can use SQLite:
+
+```kotlin
+memory {
+    storage(SQLiteStorage("memory.db"))
+}
+```
+
+### Redis Storage ✅
+
+For distributed applications, you can use Redis:
+
+```kotlin
+memory {
+    storage(RedisStorage(
+        host = "localhost",
+        port = 6379,
+        password = "password"
+    ))
+}
+```
+
+## Memory Processors ✅
+
+Memory processors optimize how memories are stored and retrieved:
+
+### Summarizer ✅
+
+The summarizer condenses long conversations to save token space:
+
+```kotlin
+memory {
+    summarizer(true)
+    summarizerThreshold(10) // Summarize after 10 messages
+}
+```
+
+### Context Optimizer ✅
+
+The context optimizer selects the most relevant memories for the current context:
+
+```kotlin
+memory {
+    contextOptimizer(true)
+    contextTokenLimit(2000) // Limit context to 2000 tokens
+}
+```
+
+### Importance Evaluator ✅
+
+The importance evaluator assesses the importance of new information:
+
+```kotlin
+memory {
+    importanceEvaluator(true)
+    importanceThreshold(0.6) // Only store memories with importance > 0.6
+}
+```
+
+## Advanced Memory Usage ✅
+
+### Memory Tags ✅
+
+You can tag memories for easier organization and retrieval:
+
+```kotlin
+// Add a tagged memory
+agent.memory.add(
+    content = "User mentioned they have a dog named Max",
+    tags = listOf("pet", "personal_info"),
+    priority = MemoryPriority.MEDIUM
+)
+
+// Retrieve memories by tag
+val petMemories = agent.memory.retrieveByTags(listOf("pet"), 5)
+```
+
+### Memory Expiration ✅
+
+You can set memories to expire after a certain time:
+
+```kotlin
+// Add a memory that expires in 24 hours
+agent.memory.add(
+    content = "User is currently working on a project deadline",
+    expiresIn = Duration.ofHours(24),
+    priority = MemoryPriority.HIGH
+)
+```
+
+### Memory Reflection ✅
+
+You can enable periodic reflection to consolidate and organize memories:
+
+```kotlin
+memory {
+    reflection(true)
+    reflectionFrequency(10) // Reflect after every 10 interactions
+}
+```
+
+## Example: Complete Memory Configuration ✅
+
+Here's a complete example of a sophisticated memory configuration:
+
+```kotlin
+memory = memory {
+    // Basic memory types
+    workingMemory(true)
+    conversationHistory(20)
+    semanticMemory(true)
+    episodicMemory(true)
+
+    // Storage configuration
+    storage(SQLiteStorage("agent_memory.db"))
+
+    // Embedding model for semantic search
+    semanticMemoryModel("all-MiniLM-L6-v2")
+
+    // Memory processors
+    summarizer(true)
+    summarizerThreshold(15)
+    contextOptimizer(true)
+    contextTokenLimit(3000)
+    importanceEvaluator(true)
+    importanceThreshold(0.5)
+
+    // Advanced features
+    reflection(true)
+    reflectionFrequency(20)
+
+    // Memory retention policy
+    retentionPolicy {
+        defaultRetention(Duration.ofDays(30))
+        retentionByPriority(MemoryPriority.LOW, Duration.ofDays(7))
+        retentionByPriority(MemoryPriority.MEDIUM, Duration.ofDays(30))
+        retentionByPriority(MemoryPriority.HIGH, Duration.ofDays(90))
+    }
+}
+```
+
+## Next Steps ✅
+
+Now that you understand the memory system, you can:
+
+1. Learn about [memory implementations](./implementations.mdx)
+2. Explore [memory querying](./querying.mdx)
+3. Implement [custom memory processors](./custom-processors.mdx)

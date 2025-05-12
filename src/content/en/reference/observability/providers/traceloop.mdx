@@ -1,0 +1,40 @@
+---
+title: "Reference: Traceloop Integration | Kastrax Observability Docs"
+description: Documentation for integrating Traceloop with Kastrax, an OpenTelemetry-native observability platform for LLM applications.
+---
+
+# Traceloop ✅
+
+Traceloop is an OpenTelemetry-native observability platform specifically designed for LLM applications.
+
+## Configuration ✅
+
+To use Traceloop with Kastrax, configure these environment variables:
+
+```env
+OTEL_EXPORTER_OTLP_ENDPOINT=https://api.traceloop.com
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your_api_key, x-traceloop-destination-id=your_destination_id"
+```
+
+## Implementation ✅
+
+Here's how to configure Kastrax to use Traceloop:
+
+```typescript
+import { Kastrax } from "@kastrax/core";
+
+export const kastrax = new Kastrax({
+  // ... other config
+  telemetry: {
+    serviceName: "your-service-name",
+    enabled: true,
+    export: {
+      type: "otlp",
+    },
+  },
+});
+```
+
+## Dashboard ✅
+
+Access your traces and analytics in the Traceloop dashboard at [app.traceloop.com](https://app.traceloop.com)

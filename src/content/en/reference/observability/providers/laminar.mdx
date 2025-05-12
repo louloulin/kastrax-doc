@@ -1,0 +1,41 @@
+---
+title: "Reference: Laminar Integration | Kastrax Observability Docs"
+description: Documentation for integrating Laminar with Kastrax, a specialized observability platform for LLM applications.
+---
+
+# Laminar ✅
+
+Laminar is a specialized observability platform for LLM applications.
+
+## Configuration ✅
+
+To use Laminar with Kastrax, configure these environment variables:
+
+```env
+OTEL_EXPORTER_OTLP_ENDPOINT=https://api.lmnr.ai:8443
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your_api_key, x-laminar-team-id=your_team_id"
+```
+
+## Implementation ✅
+
+Here's how to configure Kastrax to use Laminar:
+
+```typescript
+import { Kastrax } from "@kastrax/core";
+
+export const kastrax = new Kastrax({
+  // ... other config
+  telemetry: {
+    serviceName: "your-service-name",
+    enabled: true,
+    export: {
+      type: "otlp",
+      protocol: "grpc",
+    },
+  },
+});
+```
+
+## Dashboard ✅
+
+Access your Laminar dashboard at [https://lmnr.ai/](https://lmnr.ai/)

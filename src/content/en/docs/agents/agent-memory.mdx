@@ -1,0 +1,165 @@
+---
+title: "Kastrax AI Agent Memory System | Agents | Kastrax Docs"
+description: Comprehensive guide to implementing memory systems for Kastrax AI Agents, including conversation history, semantic memory, and persistent storage.
+---
+
+# Kastrax AI Agent Memory System ✅
+
+The Kastrax AI Agent framework provides a sophisticated memory system that enables agents to maintain context, recall past interactions, and build knowledge over time. This memory architecture is crucial for creating intelligent agents that can engage in meaningful, contextual conversations and improve their performance through experience.
+
+## Memory Architecture in Kastrax ✅
+
+The Kastrax memory system is built on a multi-layered architecture that provides different types of memory capabilities:
+
+1. **Short-term Memory**: Stores recent conversation turns and immediate context
+2. **Working Memory**: Maintains active information needed for the current task
+3. **Long-term Memory**: Persists knowledge and experiences across sessions
+4. **Semantic Memory**: Enables retrieval of information based on meaning rather than exact matches
+
+This architecture mimics human memory systems and allows agents to process information at different levels of abstraction and persistence.
+
+## Implementing Agent Memory ✅
+
+To implement memory in your Kastrax agent, you'll need to include the `kastrax-memory` module in your project and configure the appropriate memory components:
+
+```kotlin
+import ai.kastrax.core.agent.Agent
+import ai.kastrax.memory.AgentMemory
+import ai.kastrax.memory.storage.SQLiteStorage
+import ai.kastrax.memory.embedding.DeepSeekEmbedding
+
+// Create a memory system with SQLite storage and DeepSeek embeddings
+val memoryStorage = SQLiteStorage("agent-memory.db")
+val embeddingProvider = DeepSeekEmbedding(apiKey = "your-deepseek-api-key")
+
+val agentMemory = AgentMemory(
+    storage = memoryStorage,
+    embeddingProvider = embeddingProvider,
+    maxHistoryLength = 20,  // Number of conversation turns to keep in short-term memory
+    workingMemoryEnabled = true  // Enable working memory for active reasoning
+)
+
+// Create an agent with memory
+val agent = Agent(
+    name = "MemoryEnabledAssistant",
+    instructions = "You are a helpful assistant with memory capabilities.",
+    llmProvider = DeepSeekProvider(apiKey = "your-deepseek-api-key"),
+    memory = agentMemory
+)
+```
+
+This setup creates an agent with a fully-featured memory system that uses SQLite for persistent storage and DeepSeek for generating embeddings. You can customize various aspects of the memory system based on your requirements.
+
+## Using Memory in Agent Interactions ✅
+
+When interacting with a memory-enabled agent, you need to provide conversation context through session and conversation identifiers:
+
+```kotlin
+// Start a conversation with the agent
+val sessionId = "user-123"  // Identifies the user or entity
+val conversationId = "support-456"  // Identifies a specific conversation thread
+
+// First interaction - storing information
+val response1 = agent.generate(
+    input = "My name is Alice and I prefer to be contacted via email at alice@example.com",
+    sessionId = sessionId,
+    conversationId = conversationId
+)
+
+// Later interaction - retrieving information
+val response2 = agent.generate(
+    input = "What's my contact information?",
+    sessionId = sessionId,
+    conversationId = conversationId
+)
+// The agent will recall the email address from memory
+```
+
+The `sessionId` and `conversationId` parameters ensure that the agent can access the appropriate memory context for each interaction. This allows for continuous, contextual conversations across multiple interactions.
+
+## Advanced Memory Features ✅
+
+### Working Memory
+
+Working memory allows agents to maintain and manipulate information during complex reasoning tasks:
+
+```kotlin
+// Enable working memory operations
+val workingMemory = agentMemory.workingMemory
+
+// Store information in working memory
+workingMemory.store("current_task", "Researching quantum computing papers")
+workingMemory.store("important_finding", "Recent breakthrough in quantum error correction")
+
+// Retrieve information from working memory
+val currentTask = workingMemory.retrieve("current_task")
+```
+
+### Semantic Search
+
+Kastrax's memory system supports semantic search to find relevant information based on meaning:
+
+```kotlin
+// Search for semantically similar information in memory
+val searchResults = agentMemory.semanticSearch(
+    query = "What do we know about error correction?",
+    maxResults = 5,
+    threshold = 0.7  // Similarity threshold (0-1)
+)
+
+// Process search results
+searchResults.forEach { result ->
+    println("Content: ${result.content}")
+    println("Similarity: ${result.similarity}")
+}
+```
+
+### Memory Persistence
+
+Kastrax supports multiple storage backends for memory persistence:
+
+```kotlin
+// SQLite storage (local)
+val sqliteStorage = SQLiteStorage("agent-memory.db")
+
+// PostgreSQL storage (distributed)
+val postgresStorage = PostgresStorage(
+    url = "jdbc:postgresql://localhost:5432/agent_memory",
+    username = "postgres",
+    password = "password"
+)
+
+// In-memory storage (ephemeral, for testing)
+val inMemoryStorage = InMemoryStorage()
+```
+
+## Integration with Actor Model ✅
+
+Kastrax uniquely combines the agent memory system with the actor model, enabling distributed memory across agent networks:
+
+```kotlin
+// Create an agent actor with memory
+val agentActor = system.actorOf(AgentActor.props(
+    agent = agent,
+    memory = agentMemory
+))
+
+// Send a message to the agent actor
+agentActor.tell(AgentMessage(
+    content = "What did we discuss yesterday?",
+    sessionId = "user-123",
+    conversationId = "meeting-789"
+))
+```
+
+This integration allows for building sophisticated multi-agent systems where memory can be shared, distributed, or specialized across different agents in the network.
+
+## Best Practices ✅
+
+- **Memory Segmentation**: Use different conversation IDs for distinct topics to prevent context pollution
+- **Regular Pruning**: Implement policies to archive or delete old memories to prevent performance degradation
+- **Backup Strategy**: Regularly backup memory storage, especially for critical agent applications
+- **Privacy Considerations**: Implement appropriate data retention and privacy policies for stored memories
+- **Memory Monitoring**: Add logging and monitoring to track memory usage and performance
+
+By following these guidelines, you can create Kastrax AI Agents with robust memory capabilities that enable more intelligent, contextual, and personalized interactions.

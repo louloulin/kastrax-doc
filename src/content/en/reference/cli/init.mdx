@@ -1,0 +1,43 @@
+---
+title: "`kastrax init` reference | Project Creation | Kastrax CLI"
+description: Documentation for the kastrax init command, which creates a new Kastrax project with interactive setup options.
+---
+
+# `kastrax init` Reference ✅
+
+## `kastrax init` ✅
+
+This creates a new Kastrax project. You can run it in three different ways:
+
+1. **Interactive Mode (Recommended)**
+   Run without flags to use the interactive prompt, which will guide you through:
+
+   - Choosing a directory for Kastrax files
+   - Selecting components to install (Agents, Tools, Workflows)
+   - Choosing a default LLM provider (OpenAI, Anthropic, or Groq)
+   - Deciding whether to include example code
+
+2. **Quick Start with Defaults**
+
+   ```bash
+   kastrax init --default
+   ```
+
+   This sets up a project with:
+
+   - Source directory: `src/`
+   - All components: agents, tools, workflows
+   - OpenAI as the default provider
+   - No example code
+
+3. **Custom Setup**
+   ```bash
+   kastrax init --dir src/kastrax --components agents,tools --llm openai --example
+   ```
+   Options:
+   - `-d, --dir`: Directory for Kastrax files (defaults to src/kastrax)
+   - `-c, --components`: Comma-separated list of components (agents, tools, workflows)
+   - `-l, --llm`: Default model provider (openai, anthropic, groq, google or cerebras)
+   - `-k, --llm-api-key`: API key for the selected LLM provider (will be added to .env file)
+   - `-e, --example`: Include example code
+   - `-ne, --no-example`: Skip example code

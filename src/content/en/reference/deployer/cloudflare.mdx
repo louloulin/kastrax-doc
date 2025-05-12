@@ -1,0 +1,212 @@
+---
+title: "Cloudflare Deployer"
+description: "Documentation for the CloudflareDeployer class, which deploys Kastrax applications to Cloudflare Workers."
+---
+
+# CloudflareDeployer ✅
+
+The CloudflareDeployer deploys Kastrax applications to Cloudflare Workers, handling configuration, environment variables, and route management. It extends the abstract Deployer class to provide Cloudflare-specific deployment functionality.
+
+## Usage Example ✅
+
+```typescript
+import { Kastrax } from '@kastrax/core';
+import { CloudflareDeployer } from '@kastrax/deployer-cloudflare';
+
+const kastrax = new Kastrax({
+  deployer: new CloudflareDeployer({
+    scope: 'your-account-id',
+    projectName: 'your-project-name',
+    routes: [
+      {
+        pattern: 'example.com/*',
+        zone_name: 'example.com',
+        custom_domain: true,
+      },
+    ],
+    workerNamespace: 'your-namespace',
+    auth: {
+      apiToken: 'your-api-token',
+      apiEmail: 'your-email',
+    },
+  }),
+  // ... other Kastrax configuration options
+});
+```
+
+## Parameters ✅
+
+### Constructor Parameters
+
+<PropertiesTable
+  content={[
+    {
+      name: "scope",
+      type: "string",
+      description: "Your Cloudflare account ID.",
+      isOptional: false,
+    },
+    {
+      name: "projectName",
+      type: "string",
+      description: "Name of your worker project.",
+      isOptional: true,
+      defaultValue: "'kastrax'",
+    },
+    {
+      name: "routes",
+      type: "CFRoute[]",
+      description: "Array of route configurations for your worker.",
+      isOptional: true,
+    },
+    {
+      name: "workerNamespace",
+      type: "string",
+      description: "Namespace for your worker.",
+      isOptional: true,
+    },
+    {
+      name: "env",
+      type: "Record<string, any>",
+      description: "Environment variables to be included in the worker configuration.",
+      isOptional: true,
+    },
+    {
+      name: "auth",
+      type: "object",
+      description: "Cloudflare authentication details.",
+      isOptional: false,
+    },
+  ]}
+/>
+
+### auth Object
+
+<PropertiesTable
+  content={[
+    {
+      name: "apiToken",
+      type: "string",
+      description: "Your Cloudflare API token.",
+      isOptional: false,
+    },
+    {
+      name: "apiEmail",
+      type: "string",
+      description: "Your Cloudflare account email.",
+      isOptional: true,
+    },
+  ]}
+/>
+
+### CFRoute Object
+
+<PropertiesTable
+  content={[
+    {
+      name: "pattern",
+      type: "string",
+      description: "URL pattern to match (e.g., 'example.com/*').",
+      isOptional: false,
+    },
+    {
+      name: "zone_name",
+      type: "string",
+      description: "Domain zone name.",
+      isOptional: false,
+    },
+    {
+      name: "custom_domain",
+      type: "boolean",
+      description: "Whether to use a custom domain.",
+      isOptional: true,
+      defaultValue: "false",
+    },
+  ]}
+/>
+
+### Environment Variables
+
+The CloudflareDeployer handles environment variables from multiple sources:
+
+1. **Environment Files**: Variables from `.env.production` and `.env` files.
+2. **Configuration**: Variables passed through the `env` parameter.
+
+
+## Build Kastrax Project ✅
+
+To build your Kastrax project for cloudflare deployment:
+
+```bash
+npx kastrax build
+
+The build process generates the following output structure in the `.kastrax/output` directory:
+
+```
+.kastrax/output/
+├── index.mjs        # Main worker entry point
+├── wrangler.json    # Cloudflare Worker configuration
+└── assets/          # Static assets and dependencies
+```
+
+### Wrangler Configuration
+
+The CloudflareDeployer automatically generates a `wrangler.json` configuration file with the following settings:
+
+```json
+{
+  "name": "your-project-name",
+  "main": "./output/index.mjs",
+  "compatibility_date": "2024-12-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  },
+  "vars": {
+    // Environment variables from .env files and configuration
+  },
+  "routes": [
+    // Route configurations if specified
+  ]
+}
+```
+
+### Route Configuration
+
+Routes can be configured to direct traffic to your worker based on URL patterns and domains:
+
+```typescript
+const routes = [
+  {
+    pattern: 'api.example.com/*',
+    zone_name: 'example.com',
+    custom_domain: true,
+  },
+  {
+    pattern: 'example.com/api/*',
+    zone_name: 'example.com',
+  },
+];
+```
+
+
+## Deployment Options ✅
+
+After building, you can deploy your Kastrax application `.kastrax/output`  to Cloudflare Workers using any of these methods:
+
+1. **Wrangler CLI**: Deploy directly using Cloudflare's official CLI tool
+   - Install the CLI: `npm install -g wrangler`
+   - Navigate to the output directory: `cd .kastrax/output`
+   - Login to your Cloudflare account: `wrangler login`
+   - Deploy to preview environment: `wrangler deploy`
+   - For production deployment: `wrangler deploy --env production`
+
+2. **Cloudflare Dashboard**: Upload the build output manually through the Cloudflare dashboard
+
+> You can also run `wrangler dev` in your output directory `.kastrax/output` to test your Kastrax application locally.
+
+## Platform Documentation ✅
+
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/)

@@ -1,0 +1,324 @@
+---
+title: "Creating and Using Agents | Agent Documentation | Kastrax"
+description: Overview of agents in Kastrax, detailing their capabilities and how they interact with tools, memory, and external systems.
+---
+
+# Creating and Using Agents ✅
+
+Agents in Kastrax are intelligent systems that can autonomously decide on a sequence of actions to perform tasks. They have access to tools, memory, and external systems, enabling them to perform complex tasks and interact with various services. Agents can invoke custom functions, utilize third-party APIs through integrations, and access knowledge bases you have built.
+
+## Agent Capabilities ✅
+
+Kastrax agents provide several key capabilities:
+
+- **Multiple Architectures**: Choose from adaptive, goal-oriented, hierarchical, reflective, and creative agent architectures
+- **Memory Management**: Store and retrieve information across conversations using different memory types
+- **Tool Integration**: Use built-in tools or create custom tools for specific tasks with type-safe interfaces
+- **LLM Integration**: Work with various LLM providers including DeepSeek, OpenAI, Anthropic, and Google Gemini
+- **RAG Support**: Incorporate knowledge from documents and other data sources with advanced retrieval techniques
+- **Actor Model**: Build distributed agent systems using the actor model for scalability and resilience
+- **Versioning**: Create, manage, and roll back different versions of your agents
+- **State Management**: Track and update agent states throughout their lifecycle
+- **Session Management**: Organize conversations into sessions with metadata
+- **Performance Monitoring**: Collect metrics and analyze agent behavior for optimization
+
+## Creating an Agent ✅
+
+To create a basic agent in Kastrax, you use the `agent` DSL function:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    val myAgent = agent {
+        name("MyFirstAgent")
+        description("A helpful assistant that can answer questions")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Add system prompt
+        systemPrompt("""
+            You are a helpful, friendly assistant. Your goal is to provide accurate and useful information.
+            Be concise but thorough in your responses.
+        """.trimIndent())
+    }
+
+    // Use the agent
+    val response = myAgent.generate("What is artificial intelligence?")
+    println(response.text)
+}
+```
+
+## Adding Memory ✅
+
+You can add memory to your agent to help it remember past interactions:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.core.memory.memory
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    val myAgent = agent {
+        name("AgentWithMemory")
+        description("An agent that remembers past interactions")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Add memory
+        memory = memory {
+            workingMemory(true)
+            conversationHistory(10)
+            semanticMemory(true)
+        }
+    }
+
+    // Use the agent
+    val response1 = myAgent.generate("My name is Alice.")
+    println(response1.text)
+
+    val response2 = myAgent.generate("What's my name?")
+    println(response2.text)
+}
+```
+
+## Adding Tools ✅
+
+You can add tools to your agent to enable it to perform specific actions:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.core.tools.tool
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+fun main() = runBlocking {
+    val myAgent = agent {
+        name("AgentWithTools")
+        description("An agent that can use tools")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Add tools
+        tools {
+            tool("getCurrentTime") {
+                description("Get the current time")
+                parameters {}
+                execute {
+                    val currentTime = LocalDateTime.now()
+                    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                    "The current time is ${currentTime.format(formatter)}"
+                }
+            }
+
+            tool("calculateSum") {
+                description("Calculate the sum of two numbers")
+                parameters {
+                    parameter("a", "First number", Double::class)
+                    parameter("b", "Second number", Double::class)
+                }
+                execute { params ->
+                    val a = params["a"] as Double
+                    val b = params["b"] as Double
+                    "The sum of $a and $b is ${a + b}"
+                }
+            }
+        }
+    }
+
+    // Use the agent
+    val response1 = myAgent.generate("What time is it now?")
+    println(response1.text)
+
+    val response2 = myAgent.generate("Calculate the sum of 5.2 and 3.8")
+    println(response2.text)
+}
+```
+
+## Using RAG with Agents ✅
+
+You can incorporate Retrieval-Augmented Generation (RAG) into your agents:
+
+```kotlin
+import ai.kastrax.core.agent.agent
+import ai.kastrax.rag.document.DocumentLoader
+import ai.kastrax.rag.document.TextSplitter
+import ai.kastrax.rag.embedding.EmbeddingModel
+import ai.kastrax.rag.vectorstore.VectorStore
+import ai.kastrax.rag.retrieval.Retriever
+import ai.kastrax.rag.context.ContextBuilder
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    // Set up RAG components
+    val loader = DocumentLoader.fromFile("knowledge_base.pdf")
+    val documents = loader.load()
+
+    val splitter = TextSplitter.recursive(chunkSize = 1000, chunkOverlap = 200)
+    val chunks = splitter.split(documents)
+
+    val embeddingModel = EmbeddingModel.create("all-MiniLM-L6-v2")
+    val vectorStore = VectorStore.create("chroma")
+    vectorStore.addDocuments(chunks, embeddingModel)
+
+    val retriever = Retriever.fromVectorStore(
+        vectorStore = vectorStore,
+        embeddingModel = embeddingModel,
+        topK = 5
+    )
+
+    val contextBuilder = ContextBuilder.create {
+        template("""
+            Answer the question based on the following context:
+
+            Context:
+            {{context}}
+
+            Question: {{query}}
+
+            Answer:
+        """.trimIndent())
+    }
+
+    // Create a RAG agent
+    val ragAgent = agent {
+        name("RAGAgent")
+        description("An agent with RAG capabilities")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Configure RAG
+        rag {
+            retriever(retriever)
+            contextBuilder(contextBuilder)
+            maxTokens(3000)
+        }
+    }
+
+    // Use the RAG agent
+    val response = ragAgent.generate("What are the key features of Kastrax?")
+    println(response.text)
+}
+```
+
+## Agent Architectures ✅
+
+Kastrax provides several specialized agent architectures, each designed for different use cases:
+
+### Adaptive Agents ✅
+
+Adaptive agents adjust their behavior based on user preferences and feedback:
+
+```kotlin
+import ai.kastrax.core.agent.architecture.adaptiveAgent
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    val adaptiveAgent = adaptiveAgent {
+        name("AdaptiveAssistant")
+        description("An assistant that adapts to user preferences")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Define user preferences
+        preferences {
+            // Preference configuration
+        }
+
+        // Define adaptation strategy
+        adaptationStrategy {
+            // Adaptation logic
+        }
+    }
+
+    // Use the adaptive agent
+    val response = adaptiveAgent.generate("Tell me about quantum computing")
+    println(response.text)
+}
+```
+
+### Goal-Oriented Agents ✅
+
+Goal-oriented agents focus on achieving specific objectives through planning and task execution:
+
+```kotlin
+import ai.kastrax.core.agent.architecture.goalOrientedAgent
+import ai.kastrax.integrations.deepseek.deepSeek
+import ai.kastrax.integrations.deepseek.DeepSeekModel
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    val goalOrientedAgent = goalOrientedAgent {
+        name("ProjectManager")
+        description("A goal-oriented agent that helps manage projects")
+
+        // Configure the LLM
+        model = deepSeek {
+            apiKey("your-deepseek-api-key")
+            model(DeepSeekModel.DEEPSEEK_CHAT)
+            temperature(0.7)
+        }
+
+        // Define goals and tasks
+        goals {
+            // Goal configuration
+        }
+
+        tasks("goal-id") {
+            // Task configuration
+        }
+    }
+
+    // Use the goal-oriented agent
+    val response = goalOrientedAgent.generate("What's the status of the project?")
+    println(response.text)
+}
+```
+
+For more detailed information about agent architectures, see the [Agent Architectures](./architectures.mdx) guide.
+
+## Next Steps ✅
+
+Now that you understand the basics of creating and using agents in Kastrax, you can:
+
+1. Explore different [agent architectures](./architectures.mdx)
+2. Learn about [memory systems](../memory/overview.mdx)
+3. Create [custom tools](../tools/custom-tools.mdx)
+4. Build [agent workflows](../workflows/overview.mdx)

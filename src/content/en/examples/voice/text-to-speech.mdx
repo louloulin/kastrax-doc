@@ -1,0 +1,159 @@
+---
+title: "Example: Text to Speech | Voice | Kastrax Docs"
+description: Example of using Kastrax to create a text to speech application.
+---
+
+import { GithubLink } from '@/components/github-link';
+
+# Interactive Story Generator ✅
+
+The following code snippets provide example implementations of Text-to-Speech (TTS) functionality in an interactive story generator application using Next.js with Kastrax as a separate backend integration. This example demonstrates how to use the Kastrax client-js SDK to connect to your Kastrax backend. For more details on integrating Kastrax with Next.js, please refer to our [Integrate with Next.js](/docs/frameworks/next-js) documentation.
+
+## Creating an Agent with TTS Capabilities ✅
+
+The following example shows how to set up a story generator agent with TTS capabilities on the backend:
+
+```typescript filename="src/kastrax/agents/index.ts"
+import { openai } from '@ai-sdk/openai';
+import { Agent } from '@kastrax/core/agent';
+import { OpenAIVoice } from '@kastrax/voice-openai';
+import { Memory } from '@kastrax/memory';
+
+const instructions = `
+    You are an Interactive Storyteller Agent. Your job is to create engaging
+    short stories with user choices that influence the narrative. // omitted for brevity
+`;
+
+export const storyTellerAgent = new Agent({
+  name: 'Story Teller Agent',
+  instructions: instructions,
+  model: openai('gpt-4o'),
+  voice: new OpenAIVoice(),
+});
+```
+
+## Registering the Agent with Kastrax ✅
+
+This snippet demonstrates how to register the agent with your Kastrax instance:
+
+```typescript filename="src/kastrax/index.ts"
+import { createLogger } from '@kastrax/core/logger';
+import { Kastrax } from '@kastrax/core/kastrax';
+import { storyTellerAgent } from './agents';
+
+export const kastrax = new Kastrax({
+  agents: { storyTellerAgent },
+  logger: createLogger({
+    name: 'Kastrax',
+    level: 'info',
+  }),
+});
+```
+
+## Connecting to Kastrax from the Frontend ✅
+
+Here we use the Kastrax Client SDK to interact with our Kastrax server. For more information about the Kastrax Client SDK, check out the [documentation](/docs/deployment/client).
+
+```typescript filename="src/app/page.tsx"
+import { KastraxClient } from '@kastrax/client-js';
+
+export const kastraxClient = new KastraxClient({
+  baseUrl: 'http://localhost:4111', // Replace with your Kastrax backend URL
+});
+```
+
+## Generating Story Content and Converting to Speech ✅
+
+This example demonstrates how to get a reference to a Kastrax agent, generate story content based on user input, and then convert that content to speech:
+
+``` typescript filename="/app/components/StoryManager.tsx"
+const handleInitialSubmit = async (formData: FormData) => {
+  setIsLoading(true);
+  try {
+    const agent = kastraxClient.getAgent('storyTellerAgent');
+    const message = `Current phase: BEGINNING. Story genre: ${formData.genre}, Protagonist name: ${formData.protagonistDetails.name}, Protagonist age: ${formData.protagonistDetails.age}, Protagonist gender: ${formData.protagonistDetails.gender}, Protagonist occupation: ${formData.protagonistDetails.occupation}, Story Setting: ${formData.setting}`;
+    const storyResponse = await agent.generate({
+      messages: [{ role: 'user', content: message }],
+      threadId: storyState.threadId,
+      resourceId: storyState.resourceId,
+    });
+
+    const storyText = storyResponse.text;
+
+    const audioResponse = await agent.voice.speak(storyText);
+
+    if (!audioResponse.body) {
+      throw new Error('No audio stream received');
+    }
+
+    const audio = await readStream(audioResponse.body);
+
+    setStoryState(prev => ({
+      phase: 'beginning',
+      threadId: prev.threadId,
+      resourceId: prev.resourceId,
+      content: {
+        ...prev.content,
+        beginning: storyText,
+      },
+    }));
+
+    setAudioBlob(audio);
+    return audio;
+  } catch (error) {
+    console.error('Error generating story beginning:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+```
+
+## Playing the Audio ✅
+
+This snippet demonstrates how to handle text-to-speech audio playback by monitoring for new audio data. When audio is received, the code creates a browser-playable URL from the audio blob, assigns it to an audio element, and attempts to play it automatically:
+
+```typescript filename="/app/components/StoryManager.tsx"
+useEffect(() => {
+  if (!audioRef.current || !audioData) return;
+
+  // Store a reference to the HTML audio element
+  const currentAudio = audioRef.current;
+
+  // Convert the Blob/File audio data from Kastrax into a URL the browser can play
+  const url = URL.createObjectURL(audioData);
+
+  const playAudio = async () => {
+    try {
+      currentAudio.src = url;
+      await currentAudio.load();
+      await currentAudio.play();
+      setIsPlaying(true);
+    } catch (error) {
+      console.error('Auto-play failed:', error);
+    }
+  };
+
+  playAudio();
+
+  return () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = '';
+      URL.revokeObjectURL(url);
+    }
+  };
+}, [audioData]);
+```
+
+You can view the complete implementation of the Interactive Story Generator on our GitHub repository.
+
+<br />
+<br />
+<hr className="dark:border-[#404040] border-gray-300" />
+<br />
+<br />
+<GithubLink
+  link={
+    "https://github.com/kastrax-ai/voice-examples/tree/main/text-to-speech/interactive-story"
+  }
+/>

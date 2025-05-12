@@ -1,0 +1,73 @@
+---
+title: "Example: Calling an Agent from a Workflow | Kastrax Docs"
+description: Example of using Kastrax to call an AI agent from within a workflow step.
+---
+
+import { GithubLink } from "@/components/github-link";
+
+# Calling an Agent From a Workflow ✅
+
+This example demonstrates how to create a workflow that calls an AI agent to process messages and generate responses, and execute it within a workflow step.
+
+```ts showLineNumbers copy
+import { openai } from "@ai-sdk/openai";
+import { Kastrax } from "@kastrax/core";
+import { Agent } from "@kastrax/core/agent";
+import { Step, Workflow } from "@kastrax/core/workflows";
+import { z } from "zod";
+
+const penguin = new Agent({
+  name: "agent skipper",
+  instructions: `You are skipper from penguin of madagascar, reply as that`,
+  model: openai("gpt-4o-mini"),
+});
+
+const newWorkflow = new Workflow({
+  name: "pass message to the workflow",
+  triggerSchema: z.object({
+    message: z.string(),
+  }),
+});
+
+const replyAsSkipper = new Step({
+  id: "reply",
+  outputSchema: z.object({
+    reply: z.string(),
+  }),
+  execute: async ({ context, kastrax }) => {
+    const skipper = kastrax?.getAgent('penguin');
+
+    const res = await skipper?.generate(
+      context?.triggerData?.message,
+    );
+    return { reply: res?.text || "" };
+  },
+});
+
+newWorkflow.step(replyAsSkipper);
+newWorkflow.commit();
+
+const kastrax = new Kastrax({
+  agents: { penguin },
+  workflows: { newWorkflow },
+});
+
+const { runId, start } = await kastrax.getWorkflow("newWorkflow").createRun();
+
+const runResult = await start({
+  triggerData: { message: "Give me a run down of the mission to save private" },
+});
+
+console.log(runResult.results);
+```
+
+<br />
+<br />
+<hr className="dark:border-[#404040] border-gray-300" />
+<br />
+<br />
+<GithubLink
+  link={
+    "https://github.com/kastrax-ai/kastrax/blob/main/examples/basics/workflows/calling-agent-from-workflow"
+  }
+/>

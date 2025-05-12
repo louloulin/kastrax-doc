@@ -1,0 +1,243 @@
+---
+title: "Getting started with Kastrax and NextJS | Kastrax Guides"
+description: Guide on integrating Kastrax with NextJS.
+---
+import { Callout, Steps, Tabs } from "nextra/components";
+
+# Integrate Kastrax in your Next.js project ✅
+
+There are two main ways to integrate Kastrax with your Next.js application: as a separate backend service or directly integrated into your Next.js app.
+
+## 1. Separate Backend Integration ✅
+
+Best for larger projects where you want to:
+- Scale your AI backend independently
+- Keep clear separation of concerns
+- Have more deployment flexibility
+
+<Steps>
+### Create Kastrax Backend
+
+Create a new Kastrax project using our CLI:
+
+<Tabs items={["npx", "npm", "yarn", "pnpm"]}>
+  <Tabs.Tab>
+```bash copy
+npx create-kastrax@latest
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+npm create kastrax
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+yarn create kastrax
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+pnpm create kastrax
+```
+  </Tabs.Tab>
+</Tabs>
+
+For detailed setup instructions, see our [installation guide](/docs/getting-started/installation).
+
+### Install  KastraxClient
+
+<Tabs items={["npm", "yarn", "pnpm", "bun"]}>
+  <Tabs.Tab>
+```bash copy
+npm install @kastrax/client-js@latest
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+yarn add @kastrax/client-js@latest 
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+pnpm add @kastrax/client-js@latest
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+bun add @kastrax/client-js@latest
+```
+  </Tabs.Tab>
+</Tabs>
+
+### Use KastraxClient
+
+Create a client instance and use it in your Next.js application:
+
+```typescript filename="lib/kastrax.ts" copy
+import { KastraxClient } from '@kastrax/client-js';
+
+// Initialize the client
+export const kastraxClient = new KastraxClient({
+  baseUrl: process.env.NEXT_PUBLIC_KASTRAX_API_URL || 'http://localhost:4111',
+});
+```
+
+Example usage in your React component:
+
+```typescript filename="app/components/SimpleWeather.tsx" copy
+'use client'
+
+import { kastraxClient } from '@/lib/kastrax'
+
+export function SimpleWeather() {
+  async function handleSubmit(formData: FormData) {
+    const city = formData.get('city')
+    const agent = kastraxClient.getAgent('weatherAgent')
+    
+    try {
+      const response = await agent.generate({
+        messages: [{ role: 'user', content: `What's the weather like in ${city}?` }],
+      })
+      // Handle the response
+      console.log(response.text)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <input name="city" placeholder="Enter city name" />
+      <button type="submit">Get Weather</button>
+    </form>
+  )
+}
+```
+
+### Deployment
+
+When you're ready to deploy, you can use any of our platform-specific deployers (Vercel, Netlify, Cloudflare) or deploy to any Node.js hosting platform. Check our [deployment guide](/docs/deployment/deployment) for detailed instructions.
+</Steps>
+
+## 2. Direct Integration ✅
+
+Better for smaller projects or prototypes. This approach bundles Kastrax directly with your Next.js application.
+
+<Steps>
+### Initialize Kastrax in your Next.js Root
+
+First, navigate to your Next.js project root and initialize Kastrax:
+
+```bash copy
+cd your-nextjs-app
+```
+
+Then run the initialization command:
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tabs.Tab>
+```bash copy
+npx kastrax@latest init
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+yarn dlx kastrax@latest init
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+pnpm dlx kastrax@latest init
+```
+  </Tabs.Tab>
+</Tabs>
+
+This will set up Kastrax in your Next.js project. For more details about init and other configuration options, see our [kastrax init reference](/reference/cli/init).
+
+### Configure Next.js
+
+Add to your `next.config.js`:
+
+```js filename="next.config.js" copy
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  serverExternalPackages: ["@kastrax/*"],
+  // ... your other Next.js config
+}
+
+module.exports = nextConfig
+```
+
+#### Server Actions Example
+
+```typescript filename="app/actions.ts" copy
+'use server'
+
+import { kastrax } from '@/kastrax'
+
+export async function getWeatherInfo(city: string) {
+  const agent = kastrax.getAgent('weatherAgent')
+  
+  const result = await agent.generate(`What's the weather like in ${city}?`)
+
+  return result
+}
+```
+
+Use it in your component:
+
+```typescript filename="app/components/Weather.tsx" copy
+'use client'
+
+import { getWeatherInfo } from '../actions'
+
+export function Weather() {
+  async function handleSubmit(formData: FormData) {
+    const city = formData.get('city') as string
+    const result = await getWeatherInfo(city)
+    // Handle the result
+    console.log(result)
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <input name="city" placeholder="Enter city name" />
+      <button type="submit">Get Weather</button>
+    </form>
+  )
+}
+```
+
+#### API Routes Example
+
+```typescript filename="app/api/chat/route.ts" copy
+import { kastrax } from '@/kastrax'
+import { NextResponse } from 'next/server'
+
+export async function POST(req: Request) {
+  const { city } = await req.json()
+  const agent = kastrax.getAgent('weatherAgent')
+
+  const result = await agent.stream(`What's the weather like in ${city}?`)
+
+  return result.toDataStreamResponse()
+}
+```
+
+### Deployment
+
+When using direct integration, your Kastrax instance will be deployed alongside your Next.js application. Ensure you:
+- Set up environment variables for your LLM API keys in your deployment platform
+- Implement proper error handling for production use
+- Monitor your AI agent's performance and costs
+</Steps>
+
+## Observability ✅
+
+Kastrax provides built-in observability features to help you monitor, debug, and optimize your AI operations. This includes:
+- Tracing of AI operations and their performance
+- Logging of prompts, completions, and errors
+- Integration with observability platforms like Langfuse and LangSmith
+
+For detailed setup instructions and configuration options specific to Next.js local development, see our [Next.js Observability Configuration Guide](/docs/deployment/logging-and-tracing#nextjs-configuration).

@@ -1,0 +1,55 @@
+---
+title: "kastrax build"
+description: "Build your Kastrax project for production deployment"
+---
+
+The `kastrax build` command bundles your Kastrax project into a production-ready Hono server. Hono is a lightweight web framework that provides type-safe routing and middleware support, making it ideal for deploying Kastrax agents as HTTP endpoints.
+
+## Usage ✅
+
+```bash
+kastrax build [options]
+```
+
+## Options ✅
+
+- `--dir <path>`: Directory containing your Kastrax project (default: current directory)
+
+## What It Does ✅
+
+1. Locates your Kastrax entry file (either `src/kastrax/index.ts` or `src/kastrax/index.js`)
+2. Creates a `.kastrax` output directory
+3. Bundles your code using Rollup with:
+   - Tree shaking for optimal bundle size
+   - Node.js environment targeting
+   - Source map generation for debugging
+
+## Example ✅
+
+```bash
+# Build from current directory ✅
+kastrax build
+
+# Build from specific directory ✅
+kastrax build --dir ./my-kastrax-project
+```
+
+## Output ✅
+
+The command generates a production bundle in the `.kastrax` directory, which includes:
+- A Hono-based HTTP server with your Kastrax agents exposed as endpoints
+- Bundled JavaScript files optimized for production
+- Source maps for debugging
+- Required dependencies
+
+This output is suitable for:
+- Deploying to cloud servers (EC2, Digital Ocean)
+- Running in containerized environments
+- Using with container orchestration systems
+
+## Deployers ✅
+When a Deployer is used, the build output is automatically prepared for the target platform e.g
+- [Vercel Deployer](/reference/deployer/vercel)
+- [Netlify Deployer](/reference/deployer/netlify) 
+- [Cloudflare Deployer](/reference/deployer/cloudflare)
+
