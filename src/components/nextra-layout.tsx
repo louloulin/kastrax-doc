@@ -6,7 +6,6 @@ import { Layout } from "nextra-theme-docs";
 import { Search } from "nextra/components";
 import { Footer } from "./footer";
 import { Nav } from "./navbar";
-import { SubscribeForm } from "./subscribe-form";
 import { TabSwitcher } from "./tab-switcher";
 import { getSearchPlaceholder } from "./search-placeholder";
 const footer = <Footer />;
@@ -41,10 +40,7 @@ export const NextraLayout = ({
         title: <T id="_locale_.layout.toc">On This Page</T>,
         extraContent: (
           <div className="flex flex-col">
-            <SubscribeForm
-              className="pt-[1.5rem] mt-0 md:flex-col"
-              placeholder="you@company.com"
-            />
+            {/* Newsletter form removed */}
           </div>
         ),
       }}

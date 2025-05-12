@@ -1,10 +1,8 @@
 "use client";
 import { T, Var } from "gt-next/client";
-import { Check, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./navbar";
-import { SubscribeForm } from "./subscribe-form";
 
 const links = [
   {
@@ -70,23 +68,7 @@ export const Footer = () => {
         <div className="flex max-w-(--nextra-content-width) pl-[max(env(safe-area-inset-left),1.5rem)] pr-[max(env(safe-area-inset-right),1.5rem)] flex-col lg:flex-row gap-16 lg:gap-0 w-full justify-between">
           <div>
             <Logo />
-            <div className="md:hidden pt-10">
-              <label
-                htmlFor="email"
-                className="text-text-6 pb-3 block text-sm items"
-              >
-                Kastrax Newsletter
-              </label>
-              <SubscribeForm
-                placeholder="you@company.com"
-                idleIcon={<SendHorizontal className="w-4 h-4" />}
-                successIcon={<Check className="w-4 h-4" />}
-                showLabel={false}
-                inputClassName="min-w-[50px] max-w-full rounded-r-none md:min-w-[50px] pl-2 truncate md:max-w-full"
-                buttonClassName="w-fit mr-auto rounded-l-none md:w-fit h-[34px] py-0 px-3"
-                className="md:items-start flex-row items-start gap-0  md:gap-0 mt-0"
-              />
-            </div>
+            {/* Newsletter form removed */}
           </div>
           <div className="flex gap-10">
             <div className="flex gap-16">
@@ -128,19 +110,7 @@ export const Footer = () => {
                 </Var>
               </ul>
             </div>
-            <div className="hidden md:block xl:hidden">
-              <SubscribeForm
-                placeholder="you@company.com"
-                idleIcon={
-                  <SendHorizontal className="w-4 h-4" stroke="currentColor" />
-                }
-                label="Follow along with us:"
-                successIcon={<Check className="w-4 h-4" />}
-                inputClassName="min-w-[50px] border-[0.5px] md:mb-0 h-[34px] max-w-full rounded-r-none md:min-w-[50px] pl-2 truncate md:max-w-full"
-                buttonClassName="w-fit mr-auto mt-auto rounded-l-none md:w-fit h-[34px] py-0 px-3"
-                className="md:items-start flex-col items-start gap-0  md:gap-0 mt-0"
-              />
-            </div>
+            {/* Newsletter form removed */}
           </div>
         </div>
       </footer>
