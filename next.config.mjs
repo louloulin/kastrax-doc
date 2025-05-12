@@ -119,6 +119,7 @@ const withGT = initGT();
 
 export default withGT(
   withNextra({
+    output: 'export',
     assetPrefix: process.env.NODE_ENV === "production" ? "/docs" : "",
     i18n: {
       locales: ["en", "zh"],
